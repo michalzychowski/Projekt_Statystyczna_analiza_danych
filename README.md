@@ -1,1 +1,1 @@
-# Projekt_Analiza_danych_spo-eczno-gospodarczych
+# Projekt_Analiza_danych_społeczno-gospodarczych
