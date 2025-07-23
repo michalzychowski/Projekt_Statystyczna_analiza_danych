@@ -1,0 +1,146 @@
+---
+title: "Analiza dyskryminacyjna za pomocą metody KNN"
+author: "Michał Żychowski"
+date: "2024-01-20"
+output:
+  pdf_document: default
+  html_document: default
+---
+# Zaimportowanie naszych danych oraz potrzebnych pakietów
+Rozpoczęcie analizy zaczynamy od zaimportowania naszych danych i niezbędnych bibliotek.
+```{r, warning=FALSE, message=FALSE}
+raw_data <- read.csv('dane.csv',header = TRUE, sep = ',')
+library(MASS)
+library(ipred)
+library(class)
+```
+
+# Przygotowanie danych
+W trakcie analizy nie planujemy wykorzystać wszystkich kolumn dostępnych w bazie danych, zatem teraz dokonamy selekcji tylko tych, które są dla nas istotne.
+```{r}
+c <- ncol(raw_data)
+data <- raw_data[,2:c]
+head(data,n = 10)
+```
+
+
+Jako, że nasze dane są przeskalowane, to nie musimy ich ponownie skalować.
+
+
+# Utworzenie zbioru testowego i uczącego
+
+Obecnie, kiedy posiadamy dane w skali, dokonujemy podziału na zbiór uczący i testowy.
+
+```{r}
+indexes<-sample(1:nrow(data),nrow(data)/2,replace = FALSE)
+ZU = data[indexes, ]
+ZT = data[-indexes, ]
+```
+
+### Zbiór uczący
+```{r, echo=FALSE}
+head(ZU)
+```
+
+### Zbiór testowy
+```{r, echo=FALSE}
+head(ZT)
+```
+
+# Tworzenie naszego modelu
+
+Obecnie, posiadając już nasze zbiory, możemy stworzyć model dla zbioru uczącego. Tworzymy modele dla 2 i 3 sąsiadów.
+```{r}
+K1 <- 2
+K2 <- 3
+
+KNN_for_2 <- ipredknn(ZU[,8]~.,data=ZU,k=K1)
+KNN_for_3 <- ipredknn(ZU[,8]~.,data=ZU,k=K2)
+```
+
+Obecnie możemy ocenić jakość dopasowania naszych modeli.
+
+### Dla 2 sąsiadów
+```{r}
+GOF2 <- data.frame(KNN_for_2$learn)
+T1 <- table(GOF2$y,GOF2$X.Quality)
+T1
+```
+
+Procent dobroci dopasowania
+```{r, echo=FALSE}
+G1 <- sum(diag(T1))/sum(T1)
+G1
+```
+
+### Dla 3 sąsiadów
+```{r}
+GOF3 <- data.frame(KNN_for_3$learn)
+T2 <- table(GOF3$y,GOF3$X.Quality)
+T2
+```
+
+Procent dobroci dopasowania
+```{r, echo=FALSE}
+G2 <- sum(diag(T2))/sum(T2)
+G2
+```
+
+# Przewidujemy na zbiorze testowym
+
+### Dla 2 sąsiadów
+```{r}
+pred1 <- predict(KNN_for_2,ZT,"class")
+S1 <- data.frame(pred1,ZT[,8])
+```
+
+Dobroć dopasowania
+```{r, echo=FALSE}
+T3 <- table(predykacja=pred1,prawdziwe=ZT[,8])
+T3
+G3 <- sum(diag(T3))/sum(T3)
+G3
+```
+
+Określimy także prawdopodobieństwo poprawnej oceny obserwacji.
+```{r}
+pred_p_1<-predict(KNN_for_2,ZT,"prob")
+S2<-data.frame(pred_p_1)
+```
+
+Wyniki naszej predykcji
+```{r}
+FS1<-cbind(S1,S2)
+colnames(FS1)<-c("Predykcja","Rzeczywistość","Prawdopodobieństwo dla predykcji")
+head(FS1, n = 30)
+```
+
+### Dla 3 sąsiadów
+```{r}
+pred2 <- predict(KNN_for_3,ZT,"class")
+S3 <- data.frame(pred2,ZT[,8])
+```
+
+Dobroć dopasowania
+```{r, echo=FALSE}
+T4 <- table(predykacja=pred1,prawdziwe=ZT[,8])
+T4
+G4 <- sum(diag(T4))/sum(T4)
+G4
+```
+
+Określimy również prawdopodobieństwo, że ocena obserwacji została dokładnie określona.
+```{r}
+pred_p_2<-predict(KNN_for_3,ZT,"prob")
+S4<-data.frame(pred_p_2)
+```
+
+Wyniki naszej predykcji
+```{r}
+FS2<-cbind(S3,S4)
+colnames(FS2)<-c("Predykcja","Rzeczywistość","Prawdopodobieństwo dla predykcji")
+head(FS2, n=30)
+```
+
+# Podsumowanie
+Na podstawie powyższych działań stwierdzamy, że dla naszych danych liczba dwóch sąsiadów generuje podobne rezultaty jak trzech sąsiadów. W związku z tym liczba 2 sąsiadów jest wystarczająca i nie wymaga zwiększania.
