@@ -6,7 +6,7 @@ Projekt na przedmiot "Statystyczna analiza danych" na III roku studiów inżynie
 Projekt został wykonany przy użyciu:
 * R
 * RStudio
-* Pakiety R
+* Pakiety R:
   * MASS
   * ipred
   * class
