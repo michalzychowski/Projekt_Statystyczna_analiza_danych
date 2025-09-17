@@ -9,7 +9,7 @@ output:
 # Zaimportowanie naszych danych oraz potrzebnych pakietów
 Rozpoczęcie analizy zaczynamy od zaimportowania naszych danych i niezbędnych bibliotek.
 ```{r, warning=FALSE, message=FALSE}
-raw_data <- read.csv('dane.csv',header = TRUE, sep = ',')
+raw_data <- read.csv('data/dane.csv',header = TRUE, sep = ',')
 library(MASS)
 library(ipred)
 library(class)
